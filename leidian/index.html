@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>雷电风暴 · Thunder Strike</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header class="hud">
+      <div class="hud-item">
+        <span class="hud-label">得分</span>
+        <span id="score" class="hud-value">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">生命</span>
+        <span id="lives" class="hud-value">❤️❤️❤️❤️❤️</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">最高</span>
+        <span id="highscore" class="hud-value">0</span>
+      </div>
+    </header>
+
+    <div class="canvas-wrap">
+      <canvas id="game" width="480" height="720"></canvas>
+
+      <div id="overlay-start" class="overlay">
+        <div class="overlay-card">
+          <h1>⚡ 雷电风暴</h1>
+          <p class="subtitle">驾驶战机穿越雷云，击落敌机！</p>
+          <ul class="tips">
+            <li>← → ↑ ↓ 或 WASD 移动战机</li>
+            <li>鼠标 / 手指拖动控制位置</li>
+            <li>自动发射雷电弹，击落敌机得分</li>
+            <li>⚡ 随机闪电 — 黄色预警后劈下，躲开！</li>
+            <li>❤️ 加命 · 🛡️ 护盾 5 秒 · ⚡ 双发 10 秒</li>
+          </ul>
+          <button id="btn-start" class="btn-primary">出击</button>
+        </div>
+      </div>
+
+      <div id="overlay-pause" class="overlay hidden">
+        <div class="overlay-card">
+          <h2 class="overlay-title">暂停</h2>
+          <button id="btn-resume" class="btn-primary">继续</button>
+        </div>
+      </div>
+
+      <div id="overlay-gameover" class="overlay hidden">
+        <div class="overlay-card overlay-card--gameover">
+          <h2 class="overlay-title">游戏结束</h2>
+          <div class="score-panel">
+            <span class="score-label">本次得分</span>
+            <span id="final-score" class="score-number">0</span>
+          </div>
+          <div id="new-record" class="record-badge hidden">🎉 新纪录</div>
+          <button id="btn-restart" class="btn-primary">再来一局</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="controls-hint">
+      <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 移动 &nbsp;·&nbsp; <kbd>Space</kbd> 暂停
+    </footer>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
