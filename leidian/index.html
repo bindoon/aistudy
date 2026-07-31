@@ -17,12 +17,24 @@
         <span id="score" class="hud-value">0</span>
       </div>
       <div class="hud-item">
+        <span class="hud-label">关卡</span>
+        <span id="stage" class="hud-value" title="雷云入口">第1关</span>
+      </div>
+      <div class="hud-item">
         <span class="hud-label">生命</span>
         <span id="lives" class="hud-value">❤️❤️❤️❤️❤️</span>
       </div>
       <div class="hud-item">
+        <span class="hud-label">炸弹</span>
+        <span id="bombs" class="hud-value">💣💣💣</span>
+      </div>
+      <div class="hud-item">
         <span class="hud-label">最高</span>
         <span id="highscore" class="hud-value">0</span>
+      </div>
+      <div class="hud-item hud-item--mute">
+        <span class="hud-label">音效</span>
+        <button id="btn-mute" class="btn-mute muted" type="button" title="点击开启音效">🔇 静音</button>
       </div>
     </header>
 
@@ -30,6 +42,7 @@
 
     <div class="canvas-wrap">
       <canvas id="game" width="480" height="720"></canvas>
+      <button id="btn-bomb" class="btn-bomb" type="button" title="投炸弹" disabled>💣 3</button>
 
       <div id="overlay-start" class="overlay">
         <div class="overlay-card">
@@ -38,11 +51,15 @@
           <ul class="tips">
             <li>← → ↑ ↓ 或 WASD 移动战机</li>
             <li>鼠标 / 手指拖动控制位置</li>
-            <li>同时只能拥有一种子弹，🦅 老鹰胶囊拾取</li>
-            <li>同色老鹰升级 · 异色老鹰切换并从 Lv.1 重练</li>
-            <li>激光/散射/等离子/波动/链弹 各最高 5 级</li>
-            <li>⚡ 随机闪电预警后劈下，躲开！</li>
-            <li>❤️ 加命 · 🛡️ 护盾 5 秒</li>
+            <li><kbd>Space</kbd> / <kbd>B</kbd> / <kbd>Z</kbd> 投炸弹 · 全屏清场</li>
+            <li>开局 3 枚炸弹，拾取 💣 补充 · 过关奖励</li>
+            <li>每关战斗一段时间后出现 Boss，打倒后进入下一关</li>
+            <li>🦅 老鹰胶囊持续掉落：同色升级 · 异色换弹重练</li>
+            <li>紫色链弹可闪电跳跃传导多个敌人</li>
+            <li>⚡ 闪电预警后劈下，躲开！❤️ 加命 · 🛡️ 护盾</li>
+            <li><kbd>P</kbd> / Esc 暂停 · 右上角开关音效</li>
+            <li>阵亡有 3 次复活机会：答对连加连减题即可续命</li>
+            <li>敌机会射击弹幕，注意躲避！</li>
           </ul>
           <button id="btn-start" class="btn-primary">出击</button>
         </div>
@@ -52,6 +69,20 @@
         <div class="overlay-card">
           <h2 class="overlay-title">暂停</h2>
           <button id="btn-resume" class="btn-primary">继续</button>
+        </div>
+      </div>
+
+      <div id="overlay-revive" class="overlay hidden">
+        <div class="overlay-card overlay-card--revive">
+          <h2 class="overlay-title">最后机会！</h2>
+          <p class="revive-hint">答对这道连加连减题即可复活（每局共 3 次）</p>
+          <div id="revive-expr" class="revive-expr">1 + 2 - 3 = ?</div>
+          <form id="revive-form" class="revive-form" autocomplete="off">
+            <input id="revive-answer" class="revive-input" type="number" inputmode="numeric" placeholder="答案" required>
+            <button type="submit" class="btn-primary">复活</button>
+          </form>
+          <p id="revive-feedback" class="revive-feedback"></p>
+          <button id="btn-revive-skip" class="btn-secondary" type="button">放弃复活</button>
         </div>
       </div>
 
@@ -69,10 +100,12 @@
     </div>
 
     <footer class="controls-hint">
-      <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 移动 &nbsp;·&nbsp; <kbd>Space</kbd> 暂停
+      <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 移动 &nbsp;·&nbsp;
+      <kbd>Space</kbd>/<kbd>B</kbd> 炸弹 &nbsp;·&nbsp; <kbd>P</kbd> 暂停
     </footer>
   </div>
 
+  <script src="audio.js"></script>
   <script src="game.js"></script>
 </body>
 </html>
