@@ -28,50 +28,56 @@
   const REVIVE_LIVES = 2;
   const REVIVE_IFRAME = 60 * 3;
   const MAX_REVIVES = 3;
-  const HIT_IFRAME = 45;
-  const MAX_ENEMY_BULLETS = 120;
+  const HIT_IFRAME = 55;
+  const MAX_ENEMY_BULLETS = 55;
+  const MAX_MOB_BULLETS = 5; // 小兵弹幕软上限，保持稀疏
 
   const MAX_LIVES = 5;
   const MAX_WEAPON_LEVEL = 5;
-  const MAX_BOMBS = 6;
-  const START_BOMBS = 3;
+  const MAX_BOMBS = 12;
+  const START_BOMBS = 6;
+  const BOUNCE_DURATION = 60 * 10;
+  const BOUNCE_HITS = 2; // 最多撞墙弹射 2 次，避免满屏乱飞
+  const MAX_MINIONS = 10;
   const SHOOT_INTERVAL = 7;
   const SHIELD_DURATION = 60 * 5;
   const BOMB_IFRAME = 60 * 1.5;
   const BOMB_FX_FRAMES = 48;
-  const LIGHTNING_WARN_FRAMES = 55;
-  const LIGHTNING_STRIKE_FRAMES = 18;
-  const LIGHTNING_WIDTH = 64;
-  const MAX_PARTICLES = 100;
+  const LIGHTNING_WARN_FRAMES = 90; // 更长预警，有时间躲开
+  const LIGHTNING_STRIKE_FRAMES = 16;
+  const LIGHTNING_WIDTH = 48;
+  const LIGHTNING_SAFE_GAP = 110; // 闪电落点尽量离玩家当前位置远一点
+  const MAX_PARTICLES = 60;
   const MAX_FLOAT_TEXTS = 12;
   const MAX_BULLETS = 90;
+  const MAX_BOUNCE_BULLETS = 36; // 弹射期间限制子弹数，保帧率
 
   /** 同关难度稳定；战斗一段时间后出 Boss，打倒后进下一关 */
   const STAGES = [
     {
-      id: 1, name: '雷云入口', waveFrames: 60 * 22, spawnInterval: 52, speedMul: 1.0, hpBonus: 0,
-      lightningMin: 220, lightningMax: 340, extraSpawn: 0, enemyBias: 0,
-      boss: { emoji: '🛸', name: '雷云母舰', hp: 70, size: 78, speed: 1.35, points: 400 },
+      id: 1, name: '雷云入口', waveFrames: 60 * 36, spawnInterval: 58, speedMul: 1.0, hpBonus: 0,
+      lightningMin: 360, lightningMax: 520, extraSpawn: 0, enemyBias: 0,
+      boss: { emoji: '🛸', name: '雷云母舰', hp: 70, size: 78, speed: 1.35, points: 400, skill: 'drones' },
     },
     {
-      id: 2, name: '风暴带', waveFrames: 60 * 26, spawnInterval: 44, speedMul: 1.12, hpBonus: 1,
-      lightningMin: 180, lightningMax: 280, extraSpawn: 0.2, enemyBias: 1,
-      boss: { emoji: '👾', name: '风暴妖王', hp: 110, size: 84, speed: 1.5, points: 700 },
+      id: 2, name: '风暴带', waveFrames: 60 * 42, spawnInterval: 50, speedMul: 1.1, hpBonus: 1,
+      lightningMin: 320, lightningMax: 460, extraSpawn: 0.15, enemyBias: 1,
+      boss: { emoji: '👾', name: '风暴妖王', hp: 110, size: 84, speed: 1.5, points: 700, skill: 'imps' },
     },
     {
-      id: 3, name: '雷电核心', waveFrames: 60 * 28, spawnInterval: 38, speedMul: 1.25, hpBonus: 1,
-      lightningMin: 150, lightningMax: 240, extraSpawn: 0.3, enemyBias: 2,
-      boss: { emoji: '🌩️', name: '雷霆巨兽', hp: 160, size: 90, speed: 1.6, points: 1000 },
+      id: 3, name: '雷电核心', waveFrames: 60 * 46, spawnInterval: 44, speedMul: 1.2, hpBonus: 1,
+      lightningMin: 300, lightningMax: 420, extraSpawn: 0.22, enemyBias: 2,
+      boss: { emoji: '🌩️', name: '雷霆巨兽', hp: 160, size: 90, speed: 1.6, points: 1000, skill: 'orbs' },
     },
     {
-      id: 4, name: '深空战场', waveFrames: 60 * 30, spawnInterval: 32, speedMul: 1.4, hpBonus: 2,
-      lightningMin: 130, lightningMax: 210, extraSpawn: 0.35, enemyBias: 3,
-      boss: { emoji: '🐉', name: '虚空蛟龙', hp: 220, size: 96, speed: 1.75, points: 1500 },
+      id: 4, name: '深空战场', waveFrames: 60 * 50, spawnInterval: 40, speedMul: 1.3, hpBonus: 2,
+      lightningMin: 280, lightningMax: 400, extraSpawn: 0.28, enemyBias: 3,
+      boss: { emoji: '🐉', name: '虚空蛟龙', hp: 220, size: 96, speed: 1.75, points: 1500, skill: 'dragons' },
     },
     {
-      id: 5, name: '最终决战', waveFrames: 60 * 32, spawnInterval: 28, speedMul: 1.55, hpBonus: 3,
-      lightningMin: 110, lightningMax: 180, extraSpawn: 0.4, enemyBias: 4,
-      boss: { emoji: '💀', name: '终焉魔神', hp: 300, size: 104, speed: 1.9, points: 2500 },
+      id: 5, name: '最终决战', waveFrames: 60 * 54, spawnInterval: 36, speedMul: 1.4, hpBonus: 3,
+      lightningMin: 260, lightningMax: 380, extraSpawn: 0.32, enemyBias: 4,
+      boss: { emoji: '💀', name: '终焉魔神', hp: 300, size: 104, speed: 1.9, points: 2500, skill: 'reapers' },
       endless: true,
     },
   ];
@@ -95,9 +101,10 @@
   ];
 
   const UTILITY_DROPS = [
-    { kind: 'heart', emoji: '❤️', weight: 4 },
-    { kind: 'shield', emoji: '🛡️', weight: 4 },
-    { kind: 'bomb', emoji: '💣', weight: 3 },
+    { kind: 'heart', emoji: '❤️', weight: 3 },
+    { kind: 'shield', emoji: '🛡️', weight: 3 },
+    { kind: 'bomb', emoji: '💣', weight: 8 },
+    { kind: 'bounce', emoji: '🔮', weight: 5 },
   ];
 
   const ENEMIES = [
@@ -107,13 +114,13 @@
     { kind: 'boss', emoji: '🌩️', hp: 6, points: 100, speed: 0.9, size: 48, weight: 5 },
   ];
 
-  /** 敌机火力：间隔（帧）、弹速、弹幕样式 */
+  /** 小兵稀疏开火；关底 Boss 另有弹幕（会与闪电错开） */
   const ENEMY_FIRE = {
-    scout: { interval: 95, speed: 4.2, pattern: 'aim', color: '#ff8866' },
-    drone: { interval: 72, speed: 4.6, pattern: 'down', color: '#ff6688' },
-    storm: { interval: 88, speed: 3.9, pattern: 'spread3', color: '#ffaa44' },
-    boss: { interval: 58, speed: 4.3, pattern: 'spread5', color: '#ff5577' },
-    stageBoss: { interval: 36, speed: 4.8, pattern: 'boss', color: '#ff44aa' },
+    scout: { interval: 260, speed: 2.5, pattern: 'aim', color: '#ff8866', chance: 0.18 },
+    drone: { interval: 240, speed: 2.7, pattern: 'down', color: '#ff6688', chance: 0.22 },
+    storm: { interval: 280, speed: 2.4, pattern: 'down', color: '#ffaa44', chance: 0.18 },
+    boss: { interval: 220, speed: 2.6, pattern: 'aim', color: '#ff5577', chance: 0.28 },
+    stageBoss: { interval: 58, speed: 3.6, pattern: 'boss', color: '#ff44aa', chance: 1 },
   };
 
   let state = 'start';
@@ -124,12 +131,14 @@
   let bombs = START_BOMBS;
   let highScore = parseInt(localStorage.getItem('thunderStrikeHigh') || '0', 10);
   let stageIndex = 0;
-  let stagePhase = 'wave'; // wave | bossWarn | boss | clear
+  let stagePhase = 'intro'; // intro | wave | bossWarn | boss | clear
   let stageFrame = 0;
+  let clearBossName = '';
   let revivesLeft = MAX_REVIVES;
   let reviveQuiz = null;
   let frame = 0;
   let shieldUntil = 0;
+  let bounceUntil = 0;
   let bombIFrameUntil = 0;
   let hitIFrameUntil = 0;
   let shootTimer = 0;
@@ -168,6 +177,14 @@
     return Math.random() * (max - min) + min;
   }
 
+  function safeEllipse(x, y, rx, ry) {
+    if (typeof ctx.ellipse === 'function') {
+      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+    } else {
+      ctx.arc(x, y, Math.max(rx, ry), 0, Math.PI * 2);
+    }
+  }
+
   function pickWeighted(entries) {
     const total = entries.reduce((s, e) => s + e.weight, 0);
     let r = Math.random() * total;
@@ -193,12 +210,14 @@
     lives = MAX_LIVES;
     bombs = START_BOMBS;
     stageIndex = 0;
-    stagePhase = 'wave';
+    stagePhase = 'intro';
     stageFrame = 0;
+    clearBossName = '';
     revivesLeft = MAX_REVIVES;
     reviveQuiz = null;
     frame = 0;
     shieldUntil = 0;
+    bounceUntil = 0;
     bombIFrameUntil = 0;
     hitIFrameUntil = 0;
     bombCooldownUntil = 0;
@@ -276,7 +295,8 @@
     $score.textContent = score;
     $lives.textContent = lives <= 8 ? '❤️'.repeat(lives) : `❤️×${lives}`;
     if ($bombs) {
-      $bombs.textContent = bombs <= 6 ? '💣'.repeat(bombs) : `💣×${bombs}`;
+      // 多枚时用数量显示，避免顶栏挤爆
+      $bombs.textContent = bombs <= 4 ? '💣'.repeat(Math.max(0, bombs)) : `💣×${bombs}`;
     }
     if ($stage) {
       const s = stageCfg();
@@ -294,13 +314,20 @@
       const s = stageCfg();
       const maxed = weaponLevel >= MAX_WEAPON_LEVEL ? ' ★' : '';
       const bars = '▮'.repeat(weaponLevel) + '▯'.repeat(MAX_WEAPON_LEVEL - weaponLevel);
+      const bounceTag = hasBounce()
+        ? `<span class="weapon-tag weapon-bounce">🔮 弹射 ${Math.ceil((bounceUntil - frame) / 60)}s</span>`
+        : '';
       $weapons.innerHTML = `<span class="weapon-tag weapon-stage">${s.name}</span>
         <span class="weapon-tag weapon-active" style="--wc:${w.color}">
         <span class="weapon-eagle">🦅</span>
-        <span class="weapon-info">${w.name} Lv.${weaponLevel}${maxed}</span>
+        <span class="weapon-info">${w.name} ${weaponLevel}级${maxed}</span>
         <span class="weapon-bars">${bars}</span>
-      </span>`;
+      </span>${bounceTag}`;
     }
+  }
+
+  function hasBounce() {
+    return frame < bounceUntil;
   }
 
   function upgradeWeapon(type) {
@@ -315,7 +342,7 @@
         return;
       }
       weaponLevel++;
-      addFloatText(player.x, player.y - 30, `🦅 ${w.name} Lv.${weaponLevel}!`, w.color);
+      addFloatText(player.x, player.y - 30, `🦅 ${w.name} ${weaponLevel}级!`, w.color);
       Sound.upgrade();
     } else {
       const prev = WEAPONS[currentWeapon];
@@ -323,7 +350,7 @@
       weaponLevel = 1;
       bullets = [];
       addFloatText(player.x, player.y - 40, `${prev.name} → ${w.name}`, '#aaa');
-      addFloatText(player.x, player.y - 18, `🦅 ${w.name} Lv.1 重新开始!`, w.color);
+      addFloatText(player.x, player.y - 18, `🦅 ${w.name} 1级重新开始!`, w.color);
       Sound.switchWeapon();
     }
 
@@ -365,65 +392,210 @@
     });
   }
 
-  function addEnemyBullet(x, y, vx, vy, color = '#ff6644', r = 5) {
+  function addEnemyBullet(x, y, vx, vy, color = '#ff6644', r = 5, isBoss = false) {
     if (enemyBullets.length >= MAX_ENEMY_BULLETS) enemyBullets.shift();
-    enemyBullets.push({ x, y, vx, vy, r, color });
+    enemyBullets.push({ x, y, vx, vy, r, color, isBoss });
+  }
+
+  function countMobBullets() {
+    let n = 0;
+    for (const b of enemyBullets) if (!b.isBoss) n++;
+    return n;
+  }
+
+  function aimEnemyShots(e, speed, count, color, isBoss) {
+    const x = e.x;
+    const y = e.y + e.size * 0.35;
+    const dx = player.x - x;
+    const dy = player.y - y;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+    if (count <= 1) {
+      addEnemyBullet(x, y, ux * speed, uy * speed, color, isBoss ? 7 : 5, isBoss);
+      return;
+    }
+    for (let k = 0; k < count; k++) {
+      const side = (k - (count - 1) / 2) * 12;
+      addEnemyBullet(x + side * uy, y - side * ux * 0.2, ux * speed, uy * speed, color, isBoss ? 7 : 5, isBoss);
+    }
+  }
+
+  function spreadEnemyShots(e, speed, count, spread, color, isBoss) {
+    const x = e.x;
+    const y = e.y + e.size * 0.35;
+    const mid = (count - 1) / 2;
+    for (let i = 0; i < count; i++) {
+      const ang = Math.PI / 2 + (i - mid) * spread;
+      addEnemyBullet(x, y, Math.cos(ang) * speed, Math.sin(ang) * speed, color, isBoss ? 6 : 5, isBoss);
+    }
+  }
+
+  /** 向下半圆环形弹幕 */
+  function ringEnemyShots(e, speed, count, color, angleOffset = 0) {
+    const x = e.x;
+    const y = e.y + e.size * 0.35;
+    for (let i = 0; i < count; i++) {
+      const ang = Math.PI * 0.12 + (Math.PI * 0.76) * (i / Math.max(1, count - 1)) + angleOffset;
+      addEnemyBullet(x, y, Math.cos(ang) * speed, Math.sin(ang) * speed, color, 6, true);
+    }
   }
 
   function fireEnemyPattern(e, cfg) {
-    const speed = cfg.speed * (1 + stageIndex * 0.06);
+    const speed = cfg.speed * (1 + stageIndex * 0.02);
     const x = e.x;
     const y = e.y + e.size * 0.35;
 
     if (cfg.pattern === 'down') {
       addEnemyBullet(x, y, 0, speed, cfg.color);
     } else if (cfg.pattern === 'aim') {
-      const dx = player.x - x;
-      const dy = player.y - y;
-      const len = Math.hypot(dx, dy) || 1;
-      addEnemyBullet(x, y, (dx / len) * speed, (dy / len) * speed, cfg.color);
-    } else if (cfg.pattern === 'spread3') {
-      for (let i = -1; i <= 1; i++) {
-        const ang = Math.PI / 2 + i * 0.28;
-        addEnemyBullet(x, y, Math.cos(ang) * speed, Math.sin(ang) * speed, cfg.color, 5);
-      }
-    } else if (cfg.pattern === 'spread5') {
-      for (let i = -2; i <= 2; i++) {
-        const ang = Math.PI / 2 + i * 0.22;
-        addEnemyBullet(x, y, Math.cos(ang) * speed, Math.sin(ang) * speed, cfg.color, 5);
-      }
-    } else if (cfg.pattern === 'boss') {
-      e.shotIndex = (e.shotIndex || 0) + 1;
-      if (e.shotIndex % 3 === 0) {
-        // 瞄准三连
-        const dx = player.x - x;
-        const dy = player.y - y;
-        const len = Math.hypot(dx, dy) || 1;
-        const ux = dx / len;
-        const uy = dy / len;
-        for (let k = 0; k < 3; k++) {
-          addEnemyBullet(x + (k - 1) * 10, y, ux * speed, uy * speed, cfg.color, 6);
-        }
+      aimEnemyShots(e, speed, 1, cfg.color, false);
+    }
+  }
+
+  function hasActiveLightning() {
+    return lightnings.length > 0;
+  }
+
+  function countMinions() {
+    return enemies.filter((en) => en.isMinion).length;
+  }
+
+  /** Boss 召唤物：蛟龙放小龙、母舰放无人机等 */
+  function spawnBossMinions(boss, skill) {
+    if (countMinions() >= MAX_MINIONS) return;
+    const configs = {
+      drones: { emoji: '🛸', name: '护卫机', count: 4, hp: 2, size: 28, speed: 2.4, color: '#88aaff' },
+      imps: { emoji: '👾', name: '风暴仔', count: 4, hp: 3, size: 30, speed: 2.6, color: '#ff66aa' },
+      orbs: { emoji: '⚡', name: '雷球', count: 5, hp: 2, size: 26, speed: 2.8, color: '#ffe066' },
+      dragons: { emoji: '🐲', name: '小蛟龙', count: 4, hp: 4, size: 38, speed: 2.9, color: '#ff8844' },
+      reapers: { emoji: '👻', name: '魂魄', count: 5, hp: 3, size: 32, speed: 3.0, color: '#cc88ff' },
+    };
+    const cfg = configs[skill] || configs.dragons;
+    const n = Math.min(cfg.count, MAX_MINIONS - countMinions());
+    for (let i = 0; i < n; i++) {
+      const side = i % 2 === 0 ? -1 : 1;
+      const row = Math.floor(i / 2);
+      enemies.push({
+        kind: 'minion',
+        isMinion: true,
+        summonSkill: skill,
+        x: boss.x + side * (36 + row * 28),
+        y: boss.y + 10 + (i % 2) * 16,
+        size: cfg.size,
+        emoji: cfg.emoji,
+        hp: cfg.hp + Math.floor(stageIndex / 2),
+        maxHp: cfg.hp + Math.floor(stageIndex / 2),
+        points: 35,
+        speed: cfg.speed,
+        wobble: rand(0, Math.PI * 2),
+        shootCd: skill === 'orbs' ? 50 : 9999,
+        shotIndex: 0,
+        diveTimer: 20 + i * 10,
+      });
+    }
+    addFloatText(boss.x, boss.y + boss.size * 0.55, `召唤${cfg.name}!`, cfg.color);
+    spawnParticles(boss.x, boss.y + 30, cfg.color, 16);
+    if (window.Sound) Sound.levelUp();
+  }
+
+  /** 关底大 Boss：弹幕 + 花哨技能；闪电预警期间停火 */
+  function bossTryShoot(e) {
+    const arrived = e.y >= (e.targetY || 120) - 6;
+    if (!arrived) return;
+    if (hasActiveLightning()) return;
+
+    const stage = stageCfg().id;
+    const skill = e.bossSkill || stageCfg().boss.skill;
+    const baseInterval = Math.max(52, 78 - stage * 4);
+    e.shootCd = (e.shootCd ?? baseInterval) - 1;
+    if (e.shootCd > 0) return;
+
+    e.shootCd = Math.floor(baseInterval * rand(0.9, 1.12));
+    e.shotIndex = (e.shotIndex || 0) + 1;
+    const speed = 3.2 + stage * 0.16;
+    const color = ENEMY_FIRE.stageBoss.color;
+    const phase = e.shotIndex;
+    const p = phase % 5;
+
+    // 每隔几波施放召唤技（蛟龙放龙最醒目）
+    if (p === 0 || (skill === 'dragons' && phase % 3 === 0)) {
+      spawnBossMinions(e, skill);
+      // 召唤同时补一波弹幕
+      if (skill === 'dragons') {
+        ringEnemyShots(e, speed * 0.88, 6, '#ff8844', phase * 0.1);
+        aimEnemyShots(e, speed * 1.1, 2, color, true);
+      } else if (skill === 'orbs') {
+        spreadEnemyShots(e, speed, 5, 0.25, '#ffe066', true);
       } else {
-        // 扇形弹幕
-        const n = 7;
-        for (let i = 0; i < n; i++) {
-          const ang = Math.PI * 0.2 + (Math.PI * 0.6) * (i / (n - 1));
-          addEnemyBullet(x, y, Math.cos(ang) * speed, Math.sin(ang) * speed, cfg.color, 6);
-        }
+        aimEnemyShots(e, speed, 2, color, true);
       }
+      return;
+    }
+
+    if (stage <= 1) {
+      if (p === 2) spreadEnemyShots(e, speed, 4, 0.28, color, true);
+      else aimEnemyShots(e, speed * 1.05, 2, color, true);
+    } else if (stage === 2) {
+      if (p === 1) ringEnemyShots(e, speed * 0.92, 6, color);
+      else if (p === 2) spreadEnemyShots(e, speed, 5, 0.24, color, true);
+      else aimEnemyShots(e, speed * 1.1, 2, color, true);
+    } else if (stage === 3) {
+      if (p === 1) ringEnemyShots(e, speed * 0.9, 7, '#ffe066', phase * 0.08);
+      else if (p === 2) {
+        aimEnemyShots(e, speed * 1.12, 3, color, true);
+        spreadEnemyShots(e, speed * 0.9, 4, 0.3, '#ffe066', true);
+      } else aimEnemyShots(e, speed, 2, color, true);
+    } else if (stage === 4) {
+      // 虚空蛟龙：龙息扇形 + 环射
+      if (p === 1) {
+        spreadEnemyShots(e, speed * 1.05, 7, 0.18, '#ff6644', true);
+        addFloatText(e.x, e.y + e.size * 0.5, '龙息!', '#ff6644');
+      } else if (p === 2) ringEnemyShots(e, speed * 0.92, 8, '#ff8844', phase * 0.12);
+      else if (p === 3) aimEnemyShots(e, speed * 1.15, 3, color, true);
+      else spreadEnemyShots(e, speed, 5, 0.26, color, true);
+    } else {
+      if (p === 1) ringEnemyShots(e, speed * 0.9, 8, color, phase * 0.1);
+      else if (p === 2) {
+        aimEnemyShots(e, speed * 1.15, 3, color, true);
+        spreadEnemyShots(e, speed, 6, 0.22, '#cc88ff', true);
+      } else if (p === 3) ringEnemyShots(e, speed * 0.85, 7, '#aa66ff', -phase * 0.1);
+      else aimEnemyShots(e, speed * 1.1, 2, color, true);
     }
   }
 
   function enemyTryShoot(e) {
-    if (e.y < 10 || e.y > H * 0.82) return;
-    const key = e.isStageBoss ? 'stageBoss' : e.kind;
-    const cfg = ENEMY_FIRE[key];
+    if (e.isStageBoss) {
+      bossTryShoot(e);
+      return;
+    }
+
+    if (hasActiveLightning()) return;
+
+    if (e.isMinion) {
+      // 小龙 / 雷球会偶尔射击
+      if (e.summonSkill !== 'dragons' && e.summonSkill !== 'orbs' && e.summonSkill !== 'reapers') return;
+      e.shootCd = (e.shootCd ?? 80) - 1;
+      if (e.shootCd > 0) return;
+      e.shootCd = e.summonSkill === 'dragons' ? 100 : 75;
+      const col = e.summonSkill === 'dragons' ? '#ff8844' : (e.summonSkill === 'orbs' ? '#ffe066' : '#cc88ff');
+      aimEnemyShots(e, 3.0, 1, col, false);
+      return;
+    }
+
+    if (e.y < 60 || e.y > H * 0.55) return;
+    const cfg = ENEMY_FIRE[e.kind];
     if (!cfg) return;
+
     e.shootCd = (e.shootCd ?? cfg.interval) - 1;
     if (e.shootCd > 0) return;
-    const intervalMul = Math.max(0.55, 1 - stageIndex * 0.08);
-    e.shootCd = Math.floor(cfg.interval * intervalMul * rand(0.85, 1.1));
+
+    const intervalMul = Math.max(0.88, 1 - stageIndex * 0.025);
+    e.shootCd = Math.floor(cfg.interval * intervalMul * rand(0.95, 1.25));
+
+    if (Math.random() > (cfg.chance ?? 0.2)) return;
+    if (countMobBullets() >= MAX_MOB_BULLETS) return;
+
     fireEnemyPattern(e, cfg);
   }
 
@@ -436,10 +608,14 @@
     killsSinceDrop = 0;
     framesSinceDrop = 0;
 
-    // 武器胶囊更常见；保底时优先武器
-    const utilityChance = pity ? 0.18 : 0.28;
-    if (Math.random() < utilityChance) {
-      const pu = pickWeighted(UTILITY_DROPS);
+    // 炸弹不足时优先掉炸弹；否则道具/武器胶囊
+    const needBomb = bombs <= 2;
+    const utilityChance = needBomb ? 0.55 : (pity ? 0.22 : 0.3);
+    if (needBomb && bombs < MAX_BOMBS && Math.random() < 0.65) {
+      powerups.push({ kind: 'bomb', x, y, size: 30, emoji: '💣', speed: 1.2 });
+    } else if (Math.random() < utilityChance) {
+      let pu = pickWeighted(UTILITY_DROPS);
+      if (needBomb && bombs < MAX_BOMBS) pu = { kind: 'bomb', emoji: '💣' };
       powerups.push({ kind: pu.kind, x, y, size: 30, emoji: pu.emoji, speed: 1.25 });
     } else {
       const drop = pickWeighted(BULLET_DROPS);
@@ -463,15 +639,51 @@
     }
   }
 
+  function pickLightningX() {
+    const minX = LIGHTNING_WIDTH / 2 + 20;
+    const maxX = W - LIGHTNING_WIDTH / 2 - 20;
+    // 优先落在玩家左右外侧，给横向躲避空间，避免正砸脸上
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const side = Math.random() < 0.5 ? -1 : 1;
+      const x = player.x + side * rand(LIGHTNING_SAFE_GAP, LIGHTNING_SAFE_GAP + 120);
+      if (x >= minX && x <= maxX && Math.abs(x - player.x) >= LIGHTNING_SAFE_GAP * 0.7) {
+        return x;
+      }
+    }
+    // 兜底：屏幕另一侧
+    return player.x < W / 2
+      ? rand(W * 0.55, maxX)
+      : rand(minX, W * 0.45);
+  }
+
+  function canSpawnLightning() {
+    if (hasActiveLightning()) return false;
+    // Boss 战少打闪电，专注弹幕
+    if (stagePhase === 'boss' && Math.random() < 0.7) return false;
+    if (stagePhase !== 'wave' && stagePhase !== 'boss') return false;
+    // 场上子弹太多时先别劈，避免没地方躲
+    if (enemyBullets.length >= 12) return false;
+    // 刚受击 / 丢炸弹无敌中，顺延
+    if (frame < hitIFrameUntil || frame < bombIFrameUntil) return false;
+    return true;
+  }
+
   function spawnLightningWarning() {
     Sound.lightningWarn();
     lightnings.push({
-      x: rand(LIGHTNING_WIDTH / 2 + 20, W - LIGHTNING_WIDTH / 2 - 20),
+      x: pickLightningX(),
       phase: 'warn',
       startFrame: frame,
       hitPlayer: false,
       boltPath: null,
     });
+    // 预警出现时清掉玩家附近敌弹，留出躲避通道
+    for (let i = enemyBullets.length - 1; i >= 0; i--) {
+      const b = enemyBullets[i];
+      if (Math.abs(b.x - player.x) < 70 && b.y > player.y - 180 && b.y < player.y + 40) {
+        enemyBullets.splice(i, 1);
+      }
+    }
   }
 
   function buildBoltPath(x, width) {
@@ -488,11 +700,24 @@
   }
 
   function addBullet(b) {
-    bullets.push({
+    const ang = b.angle || 0;
+    const spd = b.speed || 10;
+    const ricochet = hasBounce();
+    if (ricochet && bullets.length >= MAX_BOUNCE_BULLETS) return;
+    const bullet = {
       pierce: 0,
       phase: rand(0, Math.PI * 2),
       ...b,
-    });
+      bounce: ricochet ? BOUNCE_HITS : 0,
+      _wasBounce: ricochet,
+      vx: ricochet || b.angle ? Math.sin(ang) * spd * (ricochet ? 1 : 0.85) : 0,
+      vy: -Math.cos(ang) * spd,
+    };
+    if (!ricochet && !b.angle) {
+      bullet.vx = 0;
+      bullet.vy = -spd;
+    }
+    bullets.push(bullet);
   }
 
   function shootNormal(px, py) {
@@ -620,7 +845,8 @@
   }
 
   function shoot() {
-    if (bullets.length >= MAX_BULLETS) return;
+    const bulletCap = hasBounce() ? MAX_BOUNCE_BULLETS : MAX_BULLETS;
+    if (bullets.length >= bulletCap) return;
     const px = player.x;
     const py = player.y - player.h / 2;
     switch (currentWeapon) {
@@ -637,15 +863,17 @@
 
   function spawnParticles(x, y, color, count = 8) {
     if (particles.length >= MAX_PARTICLES) return;
-    const n = Math.min(count, MAX_PARTICLES - particles.length);
+    // 弹射期间粒子减半，避免撞墙刷爆
+    const want = hasBounce() ? Math.ceil(count * 0.4) : count;
+    const n = Math.min(want, MAX_PARTICLES - particles.length);
     for (let i = 0; i < n; i++) {
       particles.push({
         x, y,
-        vx: rand(-4, 4),
-        vy: rand(-4, 4),
-        life: rand(15, 35),
-        maxLife: 35,
-        size: rand(2, 6),
+        vx: rand(-3, 3),
+        vy: rand(-3, 3),
+        life: rand(10, 22),
+        maxLife: 22,
+        size: rand(2, 4),
         color,
       });
     }
@@ -750,6 +978,21 @@
     const { x, y, w, h } = player;
     ctx.save();
 
+    if (hasBounce()) {
+      const pulse = 0.7 + Math.sin(frame * 0.25) * 0.3;
+      ctx.beginPath();
+      ctx.arc(x, y, w * 0.85, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(200, 140, 255, ${0.55 * pulse})`;
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = 'bold 12px "ZCOOL KuaiLe", cursive';
+      ctx.fillStyle = '#e0b0ff';
+      ctx.textAlign = 'center';
+      ctx.fillText(`🔮${Math.ceil((bounceUntil - frame) / 60)}s`, x, y + w * 0.95);
+    }
+
     if (hasShield()) {
       const pulse = Math.sin(frame * 0.2) * 0.1 + 0.9;
       const bombProt = frame < bombIFrameUntil;
@@ -847,7 +1090,7 @@
         ctx.shadowBlur = 10;
         ctx.fillStyle = b.color;
         ctx.beginPath();
-        ctx.ellipse(0, 0, b.w * 0.55, b.h * 0.45, 0, 0, Math.PI * 2);
+        safeEllipse(0, 0, b.w * 0.55, b.h * 0.45);
         ctx.fill();
         ctx.fillStyle = '#fff8cc';
         ctx.beginPath();
@@ -856,7 +1099,7 @@
         ctx.globalAlpha = 0.4;
         ctx.fillStyle = b.color;
         ctx.beginPath();
-        ctx.ellipse(0, b.h * 0.35, b.w * 0.35, b.h * 0.25, 0, 0, Math.PI * 2);
+        safeEllipse(0, b.h * 0.35, b.w * 0.35, b.h * 0.25);
         ctx.fill();
       } else if (b.type === 'plasma') {
         const r = b.w / 2;
@@ -945,6 +1188,17 @@
     const sway = e.isStageBoss ? Math.sin(frame * 0.04) * 4 : Math.sin(e.wobble + frame * 0.05) * 8;
     ctx.translate(e.x + sway, e.y);
 
+    if (e.isMinion && e.summonSkill === 'dragons') {
+      ctx.shadowColor = 'rgba(255, 120, 60, 0.8)';
+      ctx.shadowBlur = 14;
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = '#ff6622';
+      ctx.beginPath();
+      safeEllipse(0, 8, e.size * 0.45, e.size * 0.25);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
     if (e.isStageBoss) {
       ctx.shadowColor = 'rgba(200, 80, 255, 0.7)';
       ctx.shadowBlur = 22;
@@ -1028,7 +1282,7 @@
     ctx.font = 'bold 13px "ZCOOL KuaiLe", cursive';
     ctx.fillStyle = '#ffe066';
     ctx.textAlign = 'left';
-    ctx.fillText(`BOSS ${boss.name}`, x, y + 8);
+    ctx.fillText(`首领 ${boss.name}`, x, y + 8);
     ctx.textAlign = 'right';
     ctx.fillStyle = '#fff';
     ctx.fillText(`${Math.max(0, Math.ceil(boss.hp))}/${boss.maxHp}`, x + barW, y + 8);
@@ -1064,7 +1318,7 @@
 
       ctx.font = 'bold 10px "Noto Sans SC", sans-serif';
       ctx.fillStyle = p.isSwitch ? '#ff8866' : p.color;
-      ctx.fillText(p.isSwitch ? `[换] Lv.1` : `[升] →${p.label.replace('↑', '')}`, 0, -18);
+      ctx.fillText(p.isSwitch ? `[换] 1级` : `[升] →${p.label.replace('↑', '')}级`, 0, -18);
 
       const lvPreview = p.isSwitch ? 1 : parseInt(String(p.label).replace('↑', ''), 10) || 1;
       ctx.fillStyle = p.accent || p.color;
@@ -1294,7 +1548,7 @@
 
   function damageEnemy(e, dmg, bx, by, bullet) {
     e.hp -= dmg;
-    spawnParticles(bx, by, bullet?.color || '#aaddff', 4);
+    spawnParticles(bx, by, bullet?.color || '#aaddff', bullet?.bounce > 0 ? 2 : 4);
 
     if (bullet?.type === 'chain' && bullet.chainsLeft > 0) {
       const hitSet = new Set([e]);
@@ -1302,7 +1556,8 @@
     }
 
     if (e.hp > 0) {
-      Sound.hit();
+      // 弹射期间降频音效，避免每帧打中都播
+      if (!(bullet?.bounce > 0) || frame % 3 === 0) Sound.hit();
       return false;
     }
 
@@ -1313,29 +1568,57 @@
   function updateBullets() {
     for (let i = bullets.length - 1; i >= 0; i--) {
       const b = bullets[i];
-      if (b.type === 'spread' && b.angle) {
-        b.x += Math.sin(b.angle) * b.speed;
-        b.y -= Math.cos(b.angle) * b.speed;
-      } else {
-        b.y -= b.speed;
-        if (b.angle) {
-          b.x += Math.sin(b.angle) * b.speed * 0.85;
-        }
-      }
-      if (b.type === 'wave') {
-        b.phase += 0.14;
-        b.x += Math.sin(b.phase) * b.waveAmp;
-      }
+      const ricochet = b.bounce > 0;
 
-      if (b.y < -30 || b.x < -20 || b.x > W + 20) {
-        bullets.splice(i, 1);
-        continue;
+      if (ricochet) {
+        b.x += b.vx;
+        b.y += b.vy;
+        if (b.type === 'wave') {
+          b.phase += 0.14;
+          b.x += Math.sin(b.phase) * (b.waveAmp || 2) * 0.35;
+        }
+        // 碰墙弹射（同一帧只处理一边，避免角落连环扣次数）
+        let bounced = false;
+        if (b.x < 10) { b.x = 10; b.vx = Math.abs(b.vx || 2); bounced = true; }
+        else if (b.x > W - 10) { b.x = W - 10; b.vx = -Math.abs(b.vx || 2); bounced = true; }
+        else if (b.y < 10) { b.y = 10; b.vy = Math.abs(b.vy || 2); bounced = true; }
+        else if (b.y > H - 10) { b.y = H - 10; b.vy = -Math.abs(b.vy || 2); bounced = true; }
+        if (bounced) {
+          b.bounce--;
+          if (b.bounce <= 0) {
+            bullets.splice(i, 1);
+            continue;
+          }
+        }
+      } else {
+        if (b.type === 'spread' && b.angle) {
+          b.x += Math.sin(b.angle) * b.speed;
+          b.y -= Math.cos(b.angle) * b.speed;
+        } else if (b.vx != null && b.vy != null && (b.vx !== 0 || b.vy !== 0) && b._wasBounce) {
+          // 弹射耗尽后沿当前速度飞出屏幕
+          b.x += b.vx;
+          b.y += b.vy;
+        } else {
+          b.y -= b.speed;
+          if (b.angle) b.x += Math.sin(b.angle) * b.speed * 0.85;
+        }
+        if (b.type === 'wave' && !b._wasBounce) {
+          b.phase += 0.14;
+          b.x += Math.sin(b.phase) * b.waveAmp;
+        }
+        if (b.y < -30 || b.y > H + 30 || b.x < -20 || b.x > W + 20) {
+          bullets.splice(i, 1);
+          continue;
+        }
       }
 
       let bulletRemoved = false;
       for (let j = enemies.length - 1; j >= 0; j--) {
         const e = enemies[j];
-        const hitW = b.type === 'plasma' ? b.w : b.w;
+        // 弹射弹短时内不重复打同一敌人，避免每帧结算卡死
+        if (b.ignoreEnemy === e && frame < (b.ignoreUntil || 0)) continue;
+
+        const hitW = b.w;
         const hitH = b.type === 'plasma' ? b.w : b.h;
         if (!rectsOverlap(b.x, b.y, hitW, hitH, e.x, e.y, e.size * 0.7, e.size * 0.7)) continue;
 
@@ -1344,6 +1627,15 @@
 
         if (b.type === 'laser' && b.pierce > 1) {
           b.pierce--;
+          b.ignoreEnemy = e;
+          b.ignoreUntil = frame + 6;
+        } else if (ricochet) {
+          // 命中后改向继续飞，但不对同一目标连打
+          b.vx = (b.vx || 0) + rand(-2, 2);
+          b.vy = -Math.abs(b.vy || b.speed || 8);
+          b.ignoreEnemy = e;
+          b.ignoreUntil = frame + 10;
+          b._wasBounce = true;
         } else {
           bullets.splice(i, 1);
           bulletRemoved = true;
@@ -1356,6 +1648,7 @@
 
   function fireBomb() {
     if (state !== 'playing') return;
+    if (isStageTransition() || stagePhase === 'bossWarn') return;
     if (bombs <= 0 || frame < bombCooldownUntil) return;
 
     bombs--;
@@ -1368,7 +1661,7 @@
       cleared: false,
     };
     Sound.bomb();
-    addFloatText(player.x, player.y - 40, '💣 BOMB!', '#ffee88');
+    addFloatText(player.x, player.y - 40, '💣 炸弹!', '#ffee88');
     updateHUD();
   }
 
@@ -1461,10 +1754,10 @@
     const s = stageCfg();
     const b = s.boss;
     const hp = Math.floor(b.hp * bossHpScale);
-    const fire = ENEMY_FIRE.stageBoss;
     enemies.push({
       kind: 'stageBoss',
       isStageBoss: true,
+      bossSkill: b.skill,
       name: b.name,
       x: W / 2,
       y: -b.size,
@@ -1475,47 +1768,133 @@
       points: Math.floor(b.points * bossHpScale),
       speed: b.speed,
       wobble: 0,
-      vx: b.speed * 1.2,
+      vx: b.speed * 1.1,
       targetY: 120,
-      shootCd: Math.floor(fire.interval * 0.8),
+      shootCd: 50,
       shotIndex: 0,
     });
     addFloatText(W / 2, H * 0.35, `⚠ ${b.name}`, '#ff66ff');
-    Sound.levelUp();
+    const skillHint = {
+      drones: '护卫机出击!',
+      imps: '召唤风暴仔!',
+      orbs: '雷球飞舞!',
+      dragons: '放出小蛟龙!',
+      reapers: '魂魄降临!',
+    };
+    addFloatText(W / 2, H * 0.35 + 28, skillHint[b.skill] || '首领弹幕来袭!', '#ffaa66');
+    if (window.Sound) Sound.levelUp();
+  }
+
+  /** 清掉场上所有战斗实体与子弹，用于过关 / 开新关 */
+  function clearBattlefield(keepScoreFloats = false) {
+    enemies = [];
+    bullets = [];
+    enemyBullets = [];
+    lightnings = [];
+    powerups = [];
+    bombFx = null;
+    chainArcs = [];
+    if (!keepScoreFloats) floatTexts = [];
+    particles = [];
+  }
+
+  function isStageTransition() {
+    return stagePhase === 'clear' || stagePhase === 'intro';
+  }
+
+  /** 新一关重新开始：清空子弹，战机归位，短暂无敌 */
+  function startFreshStage() {
+    clearBattlefield(false);
+    player.x = W / 2;
+    player.y = H - 90;
+    player.targetX = W / 2;
+    player.targetY = H - 90;
+    pointerX = null;
+    pointerY = null;
+    shootTimer = 0;
+    hitIFrameUntil = frame + 90;
+    bombIFrameUntil = frame + 90;
+    const s = stageCfg();
+    nextLightningFrame = frame + rand(s.lightningMin, s.lightningMax);
+    stagePhase = 'intro';
+    stageFrame = 0;
+    updateHUD();
   }
 
   function onStageBossDefeated(boss) {
+    clearBossName = boss.name || '大怪';
+    // 立刻清空全部子弹与杂兵，进入过关演出
+    clearBattlefield(true);
     stagePhase = 'clear';
     stageFrame = 0;
-    addFloatText(W / 2, H / 2 - 16, '关卡完成!', '#ffe066');
-    addFloatText(W / 2, H / 2 + 14, `${boss.name || 'Boss'} 击破`, '#c88cff');
-    if (bombs < MAX_BOMBS) bombs++;
-    spawnPowerUp(boss.x, boss.y, true);
-    spawnPowerUp(boss.x - 30, boss.y + 20, true);
+    bombs = Math.min(MAX_BOMBS, bombs + 3);
+    addFloatText(W / 2, H / 2 - 20, `第 ${stageCfg().id} 关 完成!`, '#ffe066');
+    addFloatText(W / 2, H / 2 + 10, `${clearBossName} 击破`, '#c88cff');
+    addFloatText(W / 2, H / 2 + 36, '💣 +3', '#ffee88');
+    if (window.Sound) Sound.levelUp();
     updateHUD();
   }
 
   function advanceStage() {
     if (stageCfg().endless) {
-      // 最终关循环加强：再来一轮更硬的 Boss
-      stagePhase = 'wave';
-      stageFrame = 0;
       bossHpScale *= 1.18;
-      addFloatText(W / 2, H / 2, '最终关 · 下一波!', '#ff8866');
-      Sound.levelUp();
-      updateHUD();
+      bombs = Math.min(MAX_BOMBS, Math.max(bombs + 3, 5));
+      startFreshStage();
+      addFloatText(W / 2, H / 2 - 10, '最终关 · 下一波', '#ff8866');
+      addFloatText(W / 2, H / 2 + 16, '子弹已清空 · 重新开战', '#88ccff');
+      if (window.Sound) Sound.levelUp();
       return;
     }
     stageIndex++;
-    stagePhase = 'wave';
-    stageFrame = 0;
+    // 新关补给：至少带 5 枚炸弹
+    bombs = Math.min(MAX_BOMBS, Math.max(bombs + 3, 5));
+    startFreshStage();
     const s = stageCfg();
-    nextLightningFrame = frame + rand(s.lightningMin, s.lightningMax);
-    addFloatText(W / 2, H / 2 - 10, `第 ${s.id} 关`, '#ffe066');
-    addFloatText(W / 2, H / 2 + 18, s.name, '#88ccff');
-    Sound.levelUp();
-    if (bombs < MAX_BOMBS) bombs++;
-    updateHUD();
+    addFloatText(W / 2, H / 2 - 10, `进入第 ${s.id} 关`, '#ffe066');
+    addFloatText(W / 2, H / 2 + 16, s.name, '#88ccff');
+    addFloatText(W / 2, H / 2 + 40, `💣×${bombs}`, '#ffee88');
+    if (window.Sound) Sound.levelUp();
+  }
+
+  function drawStageBanner() {
+    if (stagePhase !== 'clear' && stagePhase !== 'intro' && stagePhase !== 'bossWarn') return;
+    const s = stageCfg();
+    ctx.save();
+    ctx.fillStyle = 'rgba(8, 10, 30, 0.55)';
+    ctx.fillRect(0, H * 0.32, W, 120);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    if (stagePhase === 'clear') {
+      ctx.font = 'bold 36px "ZCOOL KuaiLe", cursive';
+      ctx.fillStyle = '#ffe066';
+      ctx.fillText(`第 ${s.id} 关 完成!`, W / 2, H * 0.38);
+      ctx.font = 'bold 20px "Noto Sans SC", sans-serif';
+      ctx.fillStyle = '#e6c0ff';
+      ctx.fillText(`${clearBossName || '大怪'} 已击破`, W / 2, H * 0.45);
+      ctx.font = '16px "Noto Sans SC", sans-serif';
+      ctx.fillStyle = '#aaccff';
+      ctx.fillText(s.endless ? '准备下一波…' : '即将进入下一关 · 子弹清空', W / 2, H * 0.52);
+    } else if (stagePhase === 'intro') {
+      ctx.font = 'bold 36px "ZCOOL KuaiLe", cursive';
+      ctx.fillStyle = '#ffe066';
+      ctx.fillText(`第 ${s.id} 关`, W / 2, H * 0.38);
+      ctx.font = 'bold 22px "Noto Sans SC", sans-serif';
+      ctx.fillStyle = '#88ccff';
+      ctx.fillText(s.name, W / 2, H * 0.46);
+      ctx.font = '15px "Noto Sans SC", sans-serif';
+      ctx.fillStyle = '#ccd8ff';
+      ctx.fillText('击败关底大怪兽即可过关', W / 2, H * 0.53);
+    } else if (stagePhase === 'bossWarn') {
+      ctx.font = 'bold 32px "ZCOOL KuaiLe", cursive';
+      ctx.fillStyle = '#ff66ff';
+      ctx.fillText('⚠ 大怪兽来袭', W / 2, H * 0.4);
+      ctx.font = '18px "Noto Sans SC", sans-serif';
+      ctx.fillStyle = '#ffcc88';
+      ctx.fillText(s.boss.name, W / 2, H * 0.48);
+    }
+    ctx.restore();
   }
 
   function updateEnemies() {
@@ -1527,9 +1906,10 @@
         spawnEnemy();
       }
     } else if (stagePhase === 'boss' && !hasStageBoss()) {
-      // Boss 已死但状态未切时兜底
-      stagePhase = 'clear';
-      stageFrame = 0;
+      // Boss 已死但状态未切时兜底（勿打断已在进行的过关/开场）
+      if (!isStageTransition()) {
+        onStageBossDefeated({ name: clearBossName || stageCfg().boss.name || '大怪' });
+      }
     }
 
     for (let i = enemies.length - 1; i >= 0; i--) {
@@ -1543,6 +1923,19 @@
           if (e.x < e.size * 0.6 || e.x > W - e.size * 0.6) e.vx *= -1;
           e.y = e.targetY + Math.sin(frame * 0.04) * 18;
         }
+      } else if (e.isMinion) {
+        // 召唤物朝玩家俯冲
+        if (e.diveTimer > 0) {
+          e.diveTimer--;
+          e.y += e.speed * 0.6;
+          e.x += Math.sin(e.wobble + frame * 0.08) * 1.2;
+        } else {
+          const dx = player.x - e.x;
+          const dy = player.y - e.y;
+          const len = Math.hypot(dx, dy) || 1;
+          e.x += (dx / len) * e.speed;
+          e.y += (dy / len) * e.speed * 0.9;
+        }
       } else {
         e.y += e.speed;
       }
@@ -1550,14 +1943,16 @@
       enemyTryShoot(e);
 
       if (rectsOverlap(player.x, player.y, player.w * 0.7, player.h * 0.7, e.x, e.y, e.size * 0.65, e.size * 0.65)) {
-        takeDamage(e.x, e.y, e.isStageBoss ? '💥 Boss撞击!' : '💥 撞击!');
+        takeDamage(e.x, e.y, e.isMinion ? '💥 被咬!' : (e.isStageBoss ? '💥 首领撞击!' : '💥 撞击!'));
         spawnParticles(e.x, e.y, '#ff6644', 14);
         if (!e.isStageBoss) enemies.splice(i, 1);
         if (state !== 'playing') return;
         continue;
       }
 
-      if (!e.isStageBoss && e.y - e.size > H + 20) enemies.splice(i, 1);
+      if (!e.isStageBoss && (e.y - e.size > H + 20 || e.x < -40 || e.x > W + 40)) {
+        enemies.splice(i, 1);
+      }
     }
   }
 
@@ -1621,10 +2016,16 @@
               score += 20;
               addFloatText(p.x, p.y, '炸弹已满 +20', '#ffee88');
             } else {
-              bombs++;
-              addFloatText(p.x, p.y, '💣 +1', '#ffee88');
+              const gain = bombs <= 3 ? 2 : 1;
+              bombs = Math.min(MAX_BOMBS, bombs + gain);
+              addFloatText(p.x, p.y, gain > 1 ? `💣 +${gain}` : '💣 +1', '#ffee88');
             }
             Sound.powerup();
+            break;
+          case 'bounce':
+            bounceUntil = frame + BOUNCE_DURATION;
+            addFloatText(p.x, p.y, '🔮 弹射子弹 12s!', '#e0b0ff');
+            Sound.upgrade();
             break;
         }
         spawnParticles(p.x, p.y, p.color || '#ffe066', 10);
@@ -1640,8 +2041,13 @@
   function updateLightnings() {
     const s = stageCfg();
     if (frame >= nextLightningFrame) {
-      spawnLightningWarning();
-      nextLightningFrame = frame + rand(s.lightningMin, s.lightningMax);
+      if (canSpawnLightning()) {
+        spawnLightningWarning();
+        nextLightningFrame = frame + rand(s.lightningMin, s.lightningMax);
+      } else {
+        // 条件不合适就稍后再试，别硬劈
+        nextLightningFrame = frame + rand(45, 90);
+      }
     }
 
     for (let i = lightnings.length - 1; i >= 0; i--) {
@@ -1677,26 +2083,44 @@
     stageFrame++;
     framesSinceDrop++;
 
-    if (stagePhase === 'wave') {
+    if (stagePhase === 'intro') {
+      // 开场展示关卡名，期间无敌人无子弹
+      bullets = [];
+      enemyBullets = [];
+      if (stageFrame >= 110) {
+        stagePhase = 'wave';
+        stageFrame = 0;
+        addFloatText(W / 2, H * 0.3, '开始!', '#ffe066');
+      }
+    } else if (stagePhase === 'wave') {
       const s = stageCfg();
       if (stageFrame >= s.waveFrames) {
         stagePhase = 'bossWarn';
         stageFrame = 0;
-        addFloatText(W / 2, H / 2, '⚠ BOSS 来袭!', '#ff66ff');
-        Sound.lightningWarn();
-      }
-    } else if (stagePhase === 'bossWarn') {
-      if (stageFrame >= 90) {
-        // 清掉杂兵，专注 Boss
+        // 进入 Boss 预警：先清杂兵子弹
         for (let i = enemies.length - 1; i >= 0; i--) {
           if (!enemies[i].isStageBoss) enemies.splice(i, 1);
         }
+        bullets = [];
+        enemyBullets = [];
+        lightnings = [];
+        Sound.lightningWarn();
+      }
+    } else if (stagePhase === 'bossWarn') {
+      bullets = [];
+      enemyBullets = enemyBullets.filter((b) => b.isBoss);
+      if (stageFrame >= 100) {
         stagePhase = 'boss';
         stageFrame = 0;
         spawnStageBoss();
       }
     } else if (stagePhase === 'clear') {
-      if (stageFrame >= 120) {
+      // 过关期间保持全场无子弹
+      enemies = [];
+      bullets = [];
+      enemyBullets = [];
+      lightnings = [];
+      if (stageFrame >= 150) {
         advanceStage();
       }
     }
@@ -1740,45 +2164,72 @@
   function gameLoop() {
     if (state !== 'playing') return;
 
-    frame++;
-    shootTimer++;
-    if (shootTimer >= SHOOT_INTERVAL) {
-      shootTimer = 0;
-      shoot();
+    try {
+      frame++;
+      // 每帧实时判断，避免击杀 Boss 后同帧仍走战斗逻辑
+      const transitioning = isStageTransition() || stagePhase === 'bossWarn';
+
+      drawBackground();
+      updatePlayer();
+
+      if (!transitioning && state === 'playing') {
+        shootTimer++;
+        const shootEvery = hasBounce() ? SHOOT_INTERVAL + 2 : SHOOT_INTERVAL;
+        if (shootTimer >= shootEvery) {
+          shootTimer = 0;
+          shoot();
+        }
+        updateBullets();
+        // 若本帧刚击破 Boss，阶段已变 clear，不再更新敌人
+        if (!isStageTransition() && stagePhase !== 'bossWarn' && state === 'playing') {
+          updateEnemies();
+        }
+        if (state === 'playing' && !isStageTransition()) {
+          updateEnemyBullets();
+        }
+        if (state === 'playing' && !isStageTransition()) {
+          updatePowerups();
+          updateLightnings();
+          updateBombFx();
+        }
+      } else {
+        // 过场：不射击、不刷怪，并持续清空双方子弹
+        bullets = [];
+        enemyBullets = [];
+        shootTimer = 0;
+      }
+
+      if (state === 'playing') {
+        updateStage();
+        if (bounceUntil > 0 && frame <= bounceUntil + 1 && frame % 12 === 0) updateHUD();
+        updateParticles();
+        updateFloatTexts();
+        for (let i = chainArcs.length - 1; i >= 0; i--) {
+          chainArcs[i].life--;
+          if (chainArcs[i].life <= 0) chainArcs.splice(i, 1);
+        }
+
+        drawLightnings();
+        for (const e of enemies) drawEnemy(e);
+        for (const p of powerups) drawPowerUp(p);
+        drawBullets();
+        drawEnemyBullets();
+        drawChainArcs();
+        drawPlayer();
+        drawBombFx();
+        drawParticles();
+        drawFloatTexts();
+        drawBossHud();
+        drawStageBanner();
+      }
+    } catch (err) {
+      console.error('[雷电风暴] 游戏循环错误:', err);
     }
 
-    drawBackground();
-    updatePlayer();
-    updateBullets();
-    updateEnemies();
-    if (state !== 'playing') return;
-    updateEnemyBullets();
-    if (state !== 'playing') return;
-    updatePowerups();
-    updateLightnings();
-    if (state !== 'playing') return;
-    updateBombFx();
-    updateStage();
-    updateParticles();
-    updateFloatTexts();
-    for (let i = chainArcs.length - 1; i >= 0; i--) {
-      chainArcs[i].life--;
-      if (chainArcs[i].life <= 0) chainArcs.splice(i, 1);
+    // 关键：只要还在玩就必须挂下一帧（中途 return/异常都会导致卡死）
+    if (state === 'playing') {
+      requestAnimationFrame(gameLoop);
     }
-
-    drawLightnings();
-    for (const e of enemies) drawEnemy(e);
-    for (const p of powerups) drawPowerUp(p);
-    drawBullets();
-    drawEnemyBullets();
-    drawChainArcs();
-    drawPlayer();
-    drawBombFx();
-    drawParticles();
-    drawFloatTexts();
-    drawBossHud();
-
-    requestAnimationFrame(gameLoop);
   }
 
   function startGame() {
